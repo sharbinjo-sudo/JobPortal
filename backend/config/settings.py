@@ -148,6 +148,14 @@ EMAIL_BACKEND = os.getenv(
 DEFAULT_FROM_EMAIL = os.getenv('DJANGO_FROM_EMAIL', 'noreply@localhost')
 
 # ---------------------------------------------------------------------------
+# EmailJS
+# ---------------------------------------------------------------------------
+EMAILJS_SERVICE_ID = os.getenv('EMAILJS_SERVICE_ID', '')
+EMAILJS_TEMPLATE_ID = os.getenv('EMAILJS_TEMPLATE_ID', '')
+EMAILJS_USER_ID = os.getenv('EMAILJS_USER_ID', '')
+EMAILJS_ACCESS_TOKEN = os.getenv('EMAILJS_ACCESS_TOKEN', '')
+
+# ---------------------------------------------------------------------------
 # i18n
 # ---------------------------------------------------------------------------
 LANGUAGE_CODE = 'en-us'
