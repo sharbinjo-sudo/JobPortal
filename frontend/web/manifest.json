@@ -1,0 +1,9 @@
+{
+  "name": "Northstar Jobs",
+  "short_name": "Northstar Jobs",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#315c72",
+  "description": "Job search and recruitment management prototype"
+}
