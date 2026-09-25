@@ -19,10 +19,10 @@ class User(AbstractUser):
     USERNAME_FIELD='email'; REQUIRED_FIELDS=['first_name','last_name']
 
 class SeekerProfile(models.Model):
-    user=models.OneToOneField(User,on_delete=models.CASCADE,related_name='seeker_profile'); headline=models.CharField(max_length=160,blank=True); bio=models.TextField(blank=True); location=models.CharField(max_length=160,blank=True); skills=models.JSONField(default=list,blank=True); education=models.CharField(max_length=255,blank=True); experience_years=models.PositiveIntegerField(default=0); resume_url=models.URLField(blank=True); updated_at=models.DateTimeField(auto_now=True)
+    user=models.OneToOneField(User,on_delete=models.CASCADE,related_name='seeker_profile'); headline=models.CharField(max_length=160,blank=True); bio=models.TextField(blank=True); location=models.CharField(max_length=160,blank=True); skills=models.JSONField(default=list,blank=True); education=models.CharField(max_length=255,blank=True); experience_years=models.PositiveIntegerField(default=0); resume_url=models.URLField(blank=True); resume_file=models.FileField(upload_to='resumes/%Y/%m/',blank=True); updated_at=models.DateTimeField(auto_now=True)
 
 class Company(models.Model):
-    owner=models.ForeignKey(User,on_delete=models.CASCADE,related_name='companies'); name=models.CharField(max_length=180); description=models.TextField(blank=True); industry=models.CharField(max_length=120,blank=True); website=models.URLField(blank=True); location=models.CharField(max_length=160,blank=True); logo_url=models.URLField(blank=True); is_active=models.BooleanField(default=True); created_at=models.DateTimeField(auto_now_add=True)
+    owner=models.ForeignKey(User,on_delete=models.CASCADE,related_name='companies'); name=models.CharField(max_length=180); description=models.TextField(blank=True); industry=models.CharField(max_length=120,blank=True); website=models.URLField(blank=True); location=models.CharField(max_length=160,blank=True); logo_url=models.URLField(blank=True); logo_file=models.FileField(upload_to='company_logos/%Y/%m/',blank=True); is_active=models.BooleanField(default=True); created_at=models.DateTimeField(auto_now_add=True)
 
 class Job(models.Model):
     class Employment(models.TextChoices):

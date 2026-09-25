@@ -4,6 +4,7 @@ from .models import Job
 
 class JobFilter(django_filters.FilterSet):
     skill = django_filters.CharFilter(method='filter_skill')
+    location = django_filters.CharFilter(lookup_expr='icontains')
     min_experience = django_filters.NumberFilter(field_name='experience_min', lookup_expr='gte')
     max_experience = django_filters.NumberFilter(field_name='experience_min', lookup_expr='lte')
     min_salary = django_filters.NumberFilter(field_name='salary_max', lookup_expr='gte')
