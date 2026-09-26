@@ -79,7 +79,7 @@ Future<void> _pumpAuthPage(WidgetTester tester, {required _FakeAuthController au
 ProviderContainer _containerOf(WidgetTester tester) => ProviderScope.containerOf(tester.element(find.byType(AuthPage)));
 
 void main() {
-  testWidgets('sign-in form renders banner, demo shortcuts, and prefilled demo credentials', (tester) async {
+  testWidgets('sign-in form renders banner, demo shortcuts, and empty inputs by default', (tester) async {
     await _pumpAuthPage(tester, auth: _FakeAuthController());
 
     expect(find.text('Welcome back'), findsOneWidget);
@@ -91,8 +91,44 @@ void main() {
     expect(find.text('Admin'), findsOneWidget);
     expect(_field('Email address'), findsOneWidget);
     expect(_field('Password'), findsOneWidget);
-    expect(tester.widget<TextFormField>(_field('Email address')).controller!.text, 'seeker@demo.jobs');
-    expect(tester.widget<TextFormField>(_field('Password')).controller!.text, 'SeekerDemo123!');
+    expect(tester.widget<TextFormField>(_field('Email address')).controller!.text, '');
+    expect(tester.widget<TextFormField>(_field('Password')).controller!.text, '');
+  });
+
+  testWidgets('switching between register and sign-in clears all input fields', (tester) async {
+    await _pumpAuthPage(tester, auth: _FakeAuthController());
+
+    // Select a demo account to populate email and password
+    final recruiterChip = find.text('Recruiter');
+    await tester.ensureVisible(recruiterChip);
+    await tester.tap(recruiterChip);
+    await tester.pump();
+
+    expect(tester.widget<TextFormField>(_field('Email address')).controller!.text, 'recruiter@demo.jobs');
+    expect(tester.widget<TextFormField>(_field('Password')).controller!.text, 'RecruiterDemo123!');
+
+    // Switch to Register
+    await tester.tap(find.text('Register'));
+    await tester.pump();
+
+    expect(tester.widget<TextFormField>(_field('Email address')).controller!.text, '');
+    expect(tester.widget<TextFormField>(_field('Password')).controller!.text, '');
+    expect(tester.widget<TextFormField>(_field('First name')).controller!.text, '');
+    expect(tester.widget<TextFormField>(_field('Last name')).controller!.text, '');
+    expect(tester.widget<TextFormField>(_field('Confirm password')).controller!.text, '');
+
+    // Enter data into registration fields
+    await tester.enterText(_field('First name'), 'Jane');
+    await tester.enterText(_field('Email address'), 'jane@example.com');
+    await tester.enterText(_field('Password'), 'Secret123!');
+    await tester.pump();
+
+    // Switch back to Sign in
+    await tester.tap(find.text('Sign in').first);
+    await tester.pump();
+
+    expect(tester.widget<TextFormField>(_field('Email address')).controller!.text, '');
+    expect(tester.widget<TextFormField>(_field('Password')).controller!.text, '');
   });
 
   testWidgets('password visibility toggle unobscures the password field', (tester) async {
@@ -188,6 +224,11 @@ void main() {
     final auth = _FakeAuthController();
     await _pumpAuthPage(tester, auth: auth);
 
+    final seekerChip = find.text('Job seeker');
+    await tester.ensureVisible(seekerChip);
+    await tester.tap(seekerChip);
+    await tester.pump();
+
     await tester.ensureVisible(find.byType(FilledButton));
     await tester.tap(find.byType(FilledButton));
     await tester.pump();
@@ -201,6 +242,11 @@ void main() {
   testWidgets('submit button shows progress and is disabled while signing in', (tester) async {
     final auth = _FakeAuthController()..gate = Completer<User>();
     await _pumpAuthPage(tester, auth: auth);
+
+    final seekerChip = find.text('Job seeker');
+    await tester.ensureVisible(seekerChip);
+    await tester.tap(seekerChip);
+    await tester.pump();
 
     await tester.ensureVisible(find.byType(FilledButton));
     await tester.tap(find.byType(FilledButton));
@@ -220,6 +266,11 @@ void main() {
   testWidgets('failed sign-in surfaces the API error message and re-enables submit', (tester) async {
     final auth = _FakeAuthController()..loginError = const ApiException('No active account found with the given credentials.');
     await _pumpAuthPage(tester, auth: auth);
+
+    final seekerChip = find.text('Job seeker');
+    await tester.ensureVisible(seekerChip);
+    await tester.tap(seekerChip);
+    await tester.pump();
 
     await tester.ensureVisible(find.byType(FilledButton));
     await tester.tap(find.byType(FilledButton));

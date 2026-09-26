@@ -66,8 +66,8 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   final _formKey = GlobalKey<FormState>();
   final _firstName = TextEditingController();
   final _lastName = TextEditingController();
-  final _email = TextEditingController(text: 'seeker@demo.jobs');
-  final _password = TextEditingController(text: 'SeekerDemo123!');
+  final _email = TextEditingController();
+  final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _registering = false;
   bool _busy = false;
@@ -100,6 +100,24 @@ class _AuthPageState extends ConsumerState<AuthPage> {
     super.dispose();
   }
 
+  void _clearInputs() {
+    _firstName.clear();
+    _lastName.clear();
+    _email.clear();
+    _password.clear();
+    _confirm.clear();
+    _error = null;
+    _agreedToTerms = false;
+    _formKey.currentState?.reset();
+  }
+
+  void _setMode(bool registering) {
+    if (_registering != registering) {
+      _clearInputs();
+      setState(() => _registering = registering);
+    }
+  }
+
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_registering && !_agreedToTerms) {
@@ -123,7 +141,13 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   }
 
   void _selectDemo(String email, String password) {
-    setState(() { _registering = false; _email.text = email; _password.text = password; _error = null; });
+    _clearInputs();
+    setState(() {
+      _registering = false;
+      _email.text = email;
+      _password.text = password;
+      _error = null;
+    });
   }
 
   @override
@@ -172,7 +196,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
         const SizedBox(height: 18),
         _ApiStatusBanner(offlineChecked: _checkingApi, offline: !_apiUp && !_checkingApi, onRetry: _probeApi),
         const SizedBox(height: 16),
-        _AuthModeToggle(registering: _registering, onChanged: (registering) => setState(() { _registering = registering; _error = null; })),
+        _AuthModeToggle(registering: _registering, onChanged: _setMode),
         const SizedBox(height: 18),
         if (_registering) ...[
           Row(children: [Expanded(child: TextFormField(controller: _firstName, decoration: const InputDecoration(labelText: 'First name', prefixIcon: Icon(Icons.person_outline)), validator: _required)), const SizedBox(width: 12), Expanded(child: TextFormField(controller: _lastName, decoration: const InputDecoration(labelText: 'Last name', prefixIcon: Icon(Icons.person_outline)), validator: _required))]),
@@ -213,7 +237,7 @@ class _AuthPageState extends ConsumerState<AuthPage> {
             Expanded(child: _DemoAccountChip(icon: Icons.admin_panel_settings_outlined, label: 'Admin', email: 'admin@demo.jobs', password: 'AdminDemo123!', onSelect: _selectDemo)),
           ]),
         ] else ...[
-          Center(child: TextButton(onPressed: _busy ? null : () => setState(() { _registering = false; _error = null; }), child: const Text('Already have an account? Sign in'))),
+          Center(child: TextButton(onPressed: _busy ? null : () => _setMode(false), child: const Text('Already have an account? Sign in'))),
         ],
       ],
     ))),
