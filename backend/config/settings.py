@@ -112,6 +112,9 @@ if RUNNING_TESTS:
 else:
     DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 
+if not DEBUG and not DATABASE_URL.startswith(('postgres://', 'postgresql://')):
+    raise RuntimeError('Production requires a PostgreSQL/Supabase DATABASE_URL; SQLite is not permitted.')
+
 # parse() (not config()) so an inherited DATABASE_URL env var cannot
 # silently override the explicit value chosen above.
 DATABASES = {
@@ -150,10 +153,14 @@ DEFAULT_FROM_EMAIL = os.getenv('DJANGO_FROM_EMAIL', 'noreply@localhost')
 # ---------------------------------------------------------------------------
 # EmailJS
 # ---------------------------------------------------------------------------
-EMAILJS_SERVICE_ID = os.getenv('EMAILJS_SERVICE_ID', '')
-EMAILJS_TEMPLATE_ID = os.getenv('EMAILJS_TEMPLATE_ID', '')
-EMAILJS_USER_ID = os.getenv('EMAILJS_USER_ID', '')
-EMAILJS_ACCESS_TOKEN = os.getenv('EMAILJS_ACCESS_TOKEN', '')
+EMAILJS_SERVICE_ID = os.getenv('EMAILJS_SERVICE_ID', '').strip()
+EMAILJS_TEMPLATE_ID = os.getenv('EMAILJS_TEMPLATE_ID', '').strip()
+# EMAILJS_USER_ID / EMAILJS_ACCESS_TOKEN are retained as temporary aliases so
+# existing deployments keep working while the clearer key names are adopted.
+EMAILJS_PUBLIC_KEY = os.getenv('EMAILJS_PUBLIC_KEY', os.getenv('EMAILJS_USER_ID', '')).strip()
+EMAILJS_PRIVATE_KEY = os.getenv('EMAILJS_PRIVATE_KEY', os.getenv('EMAILJS_ACCESS_TOKEN', '')).strip()
+EMAILJS_TIMEOUT_SECONDS = int(os.getenv('EMAILJS_TIMEOUT_SECONDS', '8'))
+PUBLIC_APP_URL = os.getenv('PUBLIC_APP_URL', '').rstrip('/')
 
 # ---------------------------------------------------------------------------
 # i18n
@@ -188,6 +195,12 @@ SUPABASE_S3_ENABLED = all(
     (SUPABASE_S3_ENDPOINT_URL, SUPABASE_S3_REGION, SUPABASE_S3_BUCKET,
      SUPABASE_S3_ACCESS_KEY_ID, SUPABASE_S3_SECRET_ACCESS_KEY),
 )
+
+if not DEBUG and not SUPABASE_S3_ENABLED:
+    raise RuntimeError('Production requires every SUPABASE_S3_* setting; local media storage is not permitted.')
+
+if not DEBUG and not all((EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, EMAILJS_PRIVATE_KEY)):
+    raise RuntimeError('Production requires EmailJS service, template, public key, and private key settings.')
 
 STORAGES = {
     'default': (

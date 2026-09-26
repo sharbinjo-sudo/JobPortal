@@ -15,6 +15,8 @@ class AuditLog(models.Model):
         LOGIN = 'LOGIN', 'Login'
         LOGIN_FAILED = 'LOGIN_FAILED', 'Login failed'
         REGISTER = 'REGISTER', 'Registration'
+        WELCOME_EMAIL_SENT = 'WELCOME_EMAIL_SENT', 'Welcome email sent'
+        WELCOME_EMAIL_FAILED = 'WELCOME_EMAIL_FAILED', 'Welcome email failed'
         JOB_CREATED = 'JOB_CREATED', 'Job created'
         JOB_UPDATED = 'JOB_UPDATED', 'Job updated'
         JOB_CLOSED = 'JOB_CLOSED', 'Job closed'

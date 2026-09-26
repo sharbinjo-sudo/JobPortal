@@ -2,6 +2,8 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
+from unittest.mock import Mock, patch
 from .audit import AuditLog
 from .models import *
 class PortalTests(APITestCase):
@@ -59,6 +61,17 @@ class PortalTests(APITestCase):
         self.assertEqual(len(self.client.get('/api/jobs/',{'location':'bengaluru'}).data['data']),1)
         self.assertEqual(len(self.client.get('/api/jobs/',{'min_experience':2}).data['data']),1)
         self.assertEqual(len(self.client.get('/api/jobs/',{'employment_type':'CONTRACT'}).data['data']),1)
+
+    @override_settings(EMAILJS_SERVICE_ID='service', EMAILJS_TEMPLATE_ID='template', EMAILJS_PUBLIC_KEY='public', EMAILJS_PRIVATE_KEY='private')
+    @patch('portal.emailing.requests.post')
+    def test_registration_requests_welcome_email(self, post):
+        post.return_value=Mock(status_code=200,text='OK')
+        response=self.client.post('/api/auth/register/',{'email':'new@test.com','password':'StrongPass123!','first_name':'New','last_name':'Member','role':'JOB_SEEKER'},format='json')
+        self.assertEqual(response.status_code,201)
+        payload=post.call_args.kwargs['json']
+        self.assertEqual(payload['template_params']['to_email'],'new@test.com')
+        self.assertEqual(payload['template_params']['user_name'],'New Member')
+        self.assertTrue(AuditLog.objects.filter(action=AuditLog.Action.WELCOME_EMAIL_SENT).exists())
 
 
 class AuditTrailTests(APITestCase):

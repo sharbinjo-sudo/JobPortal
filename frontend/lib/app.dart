@@ -387,10 +387,6 @@ class _PortalShellState extends ConsumerState<PortalShell> {
         key: _scaffoldKey,
         appBar: _TopBar(
           user: widget.user,
-          items: items,
-          sections: sections,
-          selected: _section,
-          onSelect: (value) => setState(() => _section = value),
           onLogout: () => ref.read(authControllerProvider.notifier).logout(),
           onOpenMenu: () => _scaffoldKey.currentState?.openDrawer(),
         ),
@@ -448,21 +444,18 @@ class _NavSection {
 
 class _TopBar extends StatelessWidget implements PreferredSizeWidget {
   final User user;
-  final List<_NavItem> items;
-  final List<_NavSection> sections;
-  final int selected;
-  final ValueChanged<int> onSelect;
   final Future<void> Function() onLogout;
   final VoidCallback onOpenMenu;
-  const _TopBar({required this.user, required this.items, required this.sections, required this.selected, required this.onSelect, required this.onLogout, required this.onOpenMenu});
+  const _TopBar({required this.user, required this.onLogout, required this.onOpenMenu});
   @override Size get preferredSize => const Size.fromHeight(68);
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, constraints) {
-    final wide = constraints.maxWidth >= 960;
-    return AppBar(
+  Widget build(BuildContext context) => AppBar(
       toolbarHeight: 68,
       automaticallyImplyLeading: false,
+      leading: IconButton(onPressed: onOpenMenu, tooltip: 'Open navigation', icon: const Icon(Icons.menu_rounded)),
+      leadingWidth: 58,
+      titleSpacing: 0,
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0,
@@ -470,105 +463,10 @@ class _TopBar extends StatelessWidget implements PreferredSizeWidget {
       shape: const Border(bottom: BorderSide(color: Color(0xffe3eaf0))),
       title: const BrandMark(compact: true),
       actions: [
-        if (wide) ...[
-          const SizedBox(width: 8),
-          for (final section in sections)
-            section.indices.length == 1
-                ? _NavButton(label: section.title, active: selected == section.indices.single, onTap: () => onSelect(section.indices.single))
-                : _NavDropdown(section: section, items: items, selected: selected, onSelect: onSelect),
-          const SizedBox(width: 12),
-          _AccountMenu(user: user, onLogout: onLogout),
-          const SizedBox(width: 16),
-        ] else ...[
-          _AccountMenu(user: user, onLogout: onLogout, compact: true),
-          IconButton(onPressed: onOpenMenu, tooltip: 'Open menu', icon: const Icon(Icons.menu_rounded)),
-          const SizedBox(width: 4),
-        ],
+        _AccountMenu(user: user, onLogout: onLogout, compact: MediaQuery.sizeOf(context).width < 620),
+        const SizedBox(width: 12),
       ],
     );
-  });
-}
-
-/// A single top-bar destination (plain button, no dropdown).
-class _NavButton extends StatelessWidget {
-  final String label;
-  final bool active;
-  final IconData? trailingIcon;
-  final VoidCallback onTap;
-  const _NavButton({required this.label, required this.active, required this.onTap, this.trailingIcon});
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 14),
-    child: Material(
-      color: active ? const Color(0xffeaf4f7) : Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(label, style: TextStyle(fontSize: 14, fontWeight: active ? FontWeight.w800 : FontWeight.w600, color: active ? _brand : const Color(0xff37474f))),
-            if (trailingIcon != null) ...[
-              const SizedBox(width: 4),
-              Icon(trailingIcon, size: 18, color: active ? _brand : const Color(0xff546e7a)),
-            ],
-          ]),
-        ),
-      ),
-    ),
-  );
-}
-
-/// Top-bar section that expands into a dropdown of related destinations.
-class _NavDropdown extends StatefulWidget {
-  final _NavSection section;
-  final List<_NavItem> items;
-  final int selected;
-  final ValueChanged<int> onSelect;
-  const _NavDropdown({required this.section, required this.items, required this.selected, required this.onSelect});
-  @override State<_NavDropdown> createState() => _NavDropdownState();
-}
-
-class _NavDropdownState extends State<_NavDropdown> {
-  final MenuController _controller = MenuController();
-  bool get _childActive => widget.section.indices.contains(widget.selected);
-
-  @override
-  Widget build(BuildContext context) => MenuAnchor(
-    controller: _controller,
-    style: const MenuStyle(
-      backgroundColor: WidgetStatePropertyAll(Colors.white),
-      surfaceTintColor: WidgetStatePropertyAll(Colors.transparent),
-      elevation: WidgetStatePropertyAll(8),
-      padding: WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 8)),
-      shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12)), side: BorderSide(color: Color(0xffe3eaf0)))),
-    ),
-    menuChildren: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
-        child: Text(widget.section.title.toUpperCase(), style: const TextStyle(fontSize: 11, letterSpacing: 1.2, fontWeight: FontWeight.w800, color: Color(0xff78909c))),
-      ),
-      const Divider(height: 1, thickness: 1, color: Color(0xffeef3f7)),
-      for (final index in widget.section.indices)
-        MenuItemButton(
-          leadingIcon: Icon(widget.items[index].icon, size: 18, color: widget.selected == index ? _brand : _muted),
-          style: MenuItemButton.styleFrom(
-            minimumSize: const Size(230, 46),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            foregroundColor: widget.selected == index ? _brand : const Color(0xff37474f),
-          ),
-          onPressed: () { _controller.close(); widget.onSelect(index); },
-          child: Text(widget.items[index].title, style: TextStyle(fontSize: 14, fontWeight: widget.selected == index ? FontWeight.w800 : FontWeight.w600, color: widget.selected == index ? _brand : const Color(0xff37474f))),
-        ),
-    ],
-    builder: (context, controller, child) => _NavButton(
-      label: widget.section.title,
-      active: _childActive,
-      trailingIcon: Icons.keyboard_arrow_down_rounded,
-      onTap: () => controller.isOpen ? controller.close() : controller.open(),
-    ),
-  );
 }
 
 /// Avatar menu with account summary and sign out.
@@ -622,7 +520,7 @@ class _AccountMenu extends StatelessWidget {
   );
 }
 
-/// Side navigation used inside the hamburger drawer on narrow screens.
+/// Primary navigation displayed in the left hamburger drawer on every screen.
 class _SideNav extends StatelessWidget {
   final User user;
   final List<_NavItem> items;

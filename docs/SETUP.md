@@ -113,3 +113,14 @@ cd ..\frontend; flutter analyze; flutter test
 ```
 
 Swagger UI: `http://127.0.0.1:8000/api/docs/`.
+
+## EmailJS welcome emails
+
+Newly registered job seekers and recruiters receive a welcome email through the backend; a provider failure is audited but never blocks account creation. Configure `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, `EMAILJS_PUBLIC_KEY`, `EMAILJS_PRIVATE_KEY`, and `PUBLIC_APP_URL` in `backend/.env`. The EmailJS template must send to `{{to_email}}` (the app also supplies `{{user_email}}`). Enable non-browser/server API requests in EmailJS Account Security, then verify delivery with:
+
+```powershell
+cd backend
+python manage.py send_welcome_test --to you@example.com
+```
+
+For deployment, start from `backend/.env.production.example`. Production startup rejects SQLite, local media, or incomplete EmailJS credentials; use `python manage.py check_prod` after migration and seeding to validate the Supabase database and private storage bucket.

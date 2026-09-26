@@ -38,34 +38,23 @@ class RegisterView(APIView):
     def post(self,request):
         s=RegisterSerializer(data=request.data); s.is_valid(raise_exception=True); u=s.save(); record_audit(request, action='REGISTER', obj=u)
         try:
-            import requests
-            from django.utils import timezone
-            from django.conf import settings
-            
-            if settings.EMAILJS_SERVICE_ID and settings.EMAILJS_TEMPLATE_ID:
-                role_message = "As a job seeker, you can explore jobs and apply with one click." if u.role == User.Roles.SEEKER else "As a recruiter, you can post jobs and manage your candidate pipeline."
-                payload = {
-                    "service_id": settings.EMAILJS_SERVICE_ID,
-                    "template_id": settings.EMAILJS_TEMPLATE_ID,
-                    "user_id": settings.EMAILJS_USER_ID,
-                    "accessToken": settings.EMAILJS_ACCESS_TOKEN,
-                    "template_params": {
-                        "app_name": "Job Portal & Recruitment Management System",
-                        "user_name": u.first_name if u.first_name else u.email,
-                        "user_email": u.email,
-                        "user_role": dict(User.Roles.choices).get(u.role, 'User'),
-                        "registration_date": timezone.now().strftime("%B %d, %Y"),
-                        "role_message": role_message,
-                        "login_url": request.build_absolute_uri('/'),
-                        "support_email": "support@example.com",
-                        "current_year": str(timezone.now().year)
-                    }
-                }
-                requests.post("https://api.emailjs.com/api/v1.0/email/send", json=payload, timeout=5)
-        except Exception as e:
+            from .emailing import EmailDeliveryError, is_emailjs_configured, send_welcome_email, welcome_login_url
+            if is_emailjs_configured():
+                send_welcome_email(
+                    recipient_email=u.email,
+                    recipient_name=u.get_full_name() or u.email,
+                    role_label=dict(User.Roles.choices).get(u.role, 'User'),
+                    login_url=welcome_login_url(request),
+                )
+                record_audit(request, action='WELCOME_EMAIL_SENT', obj=u)
+            else:
+                record_audit(request, action='WELCOME_EMAIL_FAILED', obj=u, metadata={'reason':'EmailJS is not configured'})
+        except EmailDeliveryError as error:
+            record_audit(request, action='WELCOME_EMAIL_FAILED', obj=u, metadata={'reason':str(error)})
+        except Exception:
             import logging
-            logging.getLogger('django.request').error(f"EmailJS error: {e}")
-            
+            logging.getLogger('portal.email').exception('welcome_email_unexpected_failure')
+            record_audit(request, action='WELCOME_EMAIL_FAILED', obj=u, metadata={'reason':'Unexpected provider failure'})
         return envelope(UserSerializer(u).data,'Registration successful.',True,status_code=status.HTTP_201_CREATED)
 class MeView(APIView):
     def get(self,request): return envelope(UserSerializer(request.user).data)
