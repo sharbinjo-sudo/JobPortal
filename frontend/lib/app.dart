@@ -130,8 +130,29 @@ class _AuthPageState extends ConsumerState<AuthPage> {
   Widget build(BuildContext context) => Scaffold(
     body: LayoutBuilder(builder: (context, constraints) {
       final form = _authForm(context);
-      if (constraints.maxWidth < 900) return SafeArea(child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(20), child: form)));
-      return Row(children: [const Expanded(flex: 6, child: _AuthHero()), Expanded(flex: 5, child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(40), child: form)))]);
+      if (constraints.maxWidth < 900) {
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 480),
+                child: Column(
+                  children: [
+                    form,
+                    const SizedBox(height: 24),
+                    const _MobileHowItWorksCard(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      return Row(children: [
+        const Expanded(flex: 6, child: _AuthHero()),
+        Expanded(flex: 5, child: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(40), child: form))),
+      ]);
     }),
   );
 
@@ -352,19 +373,416 @@ String? _emailValidator(String? value) => value == null || !value.contains('@') 
 
 class _AuthHero extends StatelessWidget {
   const _AuthHero();
+
   @override
-  Widget build(BuildContext context) => Container(
-    color: _brand,
-    padding: const EdgeInsets.all(64),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: const [
-      BrandMark(light: true),
-      SizedBox(height: 72),
-      Text('The right opportunity\nchanges everything.', style: TextStyle(color: Colors.white, fontSize: 44, height: 1.12, fontWeight: FontWeight.w800)),
-      SizedBox(height: 20),
-      Text('Search relevant roles, manage applications, and collaborate on hiring in one focused workspace.', style: TextStyle(color: Color(0xffd9e9f0), fontSize: 17, height: 1.6)),
-    ],),
-  );
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xff183950),
+            Color(0xff214e6b),
+            Color(0xff16384d),
+          ],
+        ),
+      ),
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 36),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 640),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const BrandMark(light: true),
+                    const SizedBox(width: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.auto_awesome, size: 13, color: Color(0xff7ce7ac)),
+                          SizedBox(width: 5),
+                          Text(
+                            'Career Portal',
+                            style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 0.3),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                const Text(
+                  'The right opportunity\nchanges everything.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 38,
+                    height: 1.15,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'A streamlined hiring platform built for candidates finding dream roles and employers discovering top talent.',
+                  style: TextStyle(color: Color(0xffd0e2ec), fontSize: 15.5, height: 1.5),
+                ),
+                const SizedBox(height: 28),
+                _HeroFeatureSection(
+                  badgeColor: const Color(0xff38bdf8),
+                  badgeIcon: Icons.search_rounded,
+                  badgeLabel: 'FOR CANDIDATES & SEEKERS',
+                  title: 'Find, Apply & Track with Ease',
+                  steps: const [
+                    _HeroStep(
+                      number: '1',
+                      title: 'Discover Curated Roles',
+                      description: 'Search and filter listings by title, required skills, experience level, employment type, or location.',
+                    ),
+                    _HeroStep(
+                      number: '2',
+                      title: 'Upload Profile & Resume',
+                      description: 'Maintain your professional headline, bio, skills, and store your resume securely in cloud storage.',
+                    ),
+                    _HeroStep(
+                      number: '3',
+                      title: '1-Click Apply & Live Tracking',
+                      description: 'Submit applications in seconds. Receive email confirmations and track your progress in real time.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _HeroFeatureSection(
+                  badgeColor: const Color(0xfffbbf24),
+                  badgeIcon: Icons.business_center_rounded,
+                  badgeLabel: 'FOR RECRUITERS & COMPANIES',
+                  title: 'Publish Roles & Hire Efficiently',
+                  steps: const [
+                    _HeroStep(
+                      number: '1',
+                      title: 'Showcase Your Brand',
+                      description: 'Create your company profile with custom logo, mission, website, and industry focus.',
+                    ),
+                    _HeroStep(
+                      number: '2',
+                      title: 'Post Detailed Listings',
+                      description: 'Define key skills, experience brackets, compensation ranges, and job requirements.',
+                    ),
+                    _HeroStep(
+                      number: '3',
+                      title: 'Review Resumes & Pipeline',
+                      description: 'Inspect candidates, view cloud-hosted resumes instantly, and advance hiring stages collaboratively.',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: const [
+                    _HeroPill(icon: Icons.cloud_done_outlined, label: 'Cloud-Stored Resumes'),
+                    _HeroPill(icon: Icons.mark_email_read_outlined, label: 'Email Notifications'),
+                    _HeroPill(icon: Icons.track_changes_outlined, label: 'Transparent Statuses'),
+                    _HeroPill(icon: Icons.verified_user_outlined, label: 'Verified Employers'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+class _HeroFeatureSection extends StatelessWidget {
+  final Color badgeColor;
+  final IconData badgeIcon;
+  final String badgeLabel;
+  final String title;
+  final List<_HeroStep> steps;
+
+  const _HeroFeatureSection({
+    required this.badgeColor,
+    required this.badgeIcon,
+    required this.badgeLabel,
+    required this.title,
+    required this.steps,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(badgeIcon, size: 13, color: badgeColor),
+                    const SizedBox(width: 5),
+                    Text(
+                      badgeLabel,
+                      style: TextStyle(color: badgeColor, fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(color: Colors.white, fontSize: 13.5, fontWeight: FontWeight.w700),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...steps.map((step) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 20,
+                  height: 20,
+                  margin: const EdgeInsets.only(top: 1),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      step.number,
+                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${step.title}: ',
+                          style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white, fontSize: 12.5),
+                        ),
+                        TextSpan(
+                          text: step.description,
+                          style: const TextStyle(color: Color(0xffc5dae6), fontSize: 12.5, height: 1.35),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroStep {
+  final String number;
+  final String title;
+  final String description;
+
+  const _HeroStep({
+    required this.number,
+    required this.title,
+    required this.description,
+  });
+}
+
+class _HeroPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _HeroPill({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xff7ce7ac)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(color: Color(0xffe1edf3), fontSize: 11.5, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MobileHowItWorksCard extends StatelessWidget {
+  const _MobileHowItWorksCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Color(0xffe3eaf0)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _brand.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.lightbulb_outline_rounded, color: _brand, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'How Northstar Works',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: _ink),
+                    ),
+                    Text(
+                      'Simple workflows for candidates & hiring teams',
+                      style: TextStyle(fontSize: 12, color: _muted),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            const _MobileRoleSection(
+              title: 'For Candidates & Seekers',
+              badgeColor: Color(0xff0284c7),
+              icon: Icons.person_search_outlined,
+              points: [
+                'Discover roles filtered by skills, experience, and compensation',
+                'Upload and securely store your resume in cloud storage',
+                '1-click application submission with live status tracking & email alerts',
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(color: Color(0xffedf2f7), height: 1),
+            ),
+            const _MobileRoleSection(
+              title: 'For Employers & Recruiters',
+              badgeColor: Color(0xffd97706),
+              icon: Icons.business_center_outlined,
+              points: [
+                'Create company profiles with verified branding and logos',
+                'Publish job openings with custom requirements and skill tags',
+                'Review incoming resumes instantly and manage your candidate pipeline',
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MobileRoleSection extends StatelessWidget {
+  final String title;
+  final Color badgeColor;
+  final IconData icon;
+  final List<String> points;
+
+  const _MobileRoleSection({
+    required this.title,
+    required this.badgeColor,
+    required this.icon,
+    required this.points,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: badgeColor),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _ink),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        ...points.map(
+          (point) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  margin: const EdgeInsets.only(top: 6),
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    point,
+                    style: const TextStyle(fontSize: 12.5, color: Color(0xff475569), height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 
 class PortalShell extends ConsumerStatefulWidget {
   final User user;
