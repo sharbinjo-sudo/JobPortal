@@ -51,14 +51,28 @@ def send_welcome_email(*, recipient_email: str, recipient_name: str, role_label:
         'user_id': settings.EMAILJS_PUBLIC_KEY,
         'accessToken': settings.EMAILJS_PRIVATE_KEY,
         'template_params': {
-            # Keep both names: EmailJS templates commonly use one or the other.
+            # EmailJS templates commonly bind to {{email}} or {{to_email}}
+            'email': recipient_email,
             'to_email': recipient_email,
             'user_email': recipient_email,
+            'recipient_email': recipient_email,
+            'to': recipient_email,
+            'recipient': recipient_email,
+            'reply_to': recipient_email,
+            'name': recipient_name or recipient_email,
+            'to_name': recipient_name or recipient_email,
             'user_name': recipient_name or recipient_email,
-            'user_role': role_label,
+            'recipient_name': recipient_name or recipient_email,
+            'from_name': 'Northstar Jobs',
             'app_name': 'Northstar Jobs',
+            'user_role': role_label,
             'registration_date': timezone.localdate().strftime('%B %d, %Y'),
             'role_message': role_message,
+            'message': (
+                f'Welcome to Northstar Jobs, {recipient_name or recipient_email}!\n\n'
+                f'{role_message}\n\n'
+                f'Access your account: {login_url}'
+            ),
             'login_url': login_url,
             'support_email': settings.DEFAULT_FROM_EMAIL,
             'current_year': str(timezone.localdate().year),
@@ -86,5 +100,8 @@ def welcome_login_url(request=None) -> str:
     if settings.PUBLIC_APP_URL:
         return settings.PUBLIC_APP_URL
     if request is not None:
-        return request.build_absolute_uri('/')
+        try:
+            return request.build_absolute_uri('/')
+        except Exception:
+            pass
     return 'http://localhost:8000/'
