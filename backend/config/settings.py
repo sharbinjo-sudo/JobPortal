@@ -48,6 +48,9 @@ RUNNING_TESTS = 'test' in sys.argv or 'pytest' in sys.argv
 RUNNING_DEVSERVER = 'runserver' in sys.argv
 DEBUG = env_bool('DJANGO_DEBUG', 'true') or RUNNING_TESTS or RUNNING_DEVSERVER
 ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 if not DEBUG and SECRET_KEY.startswith('dev-only-'):
     raise RuntimeError('DJANGO_SECRET_KEY must be set when DJANGO_DEBUG=false')
@@ -208,7 +211,7 @@ STORAGES = {
         if SUPABASE_S3_ENABLED and not RUNNING_TESTS
         else {'BACKEND': 'django.core.files.storage.FileSystemStorage'}
     ),
-    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -220,15 +223,19 @@ CORS_ALLOWED_ORIGINS = env_list(
     'CORS_ALLOWED_ORIGINS',
     'http://localhost:8080,http://127.0.0.1:8080',
 )
-# Flutter Web selects an available development port at runtime. Keep this
-# narrowly scoped to loopback hosts so a locally launched app works whether
-# Django is run with DEBUG enabled or production-style environment values.
+# Allow loopback development ports and Netlify domains by default
 CORS_ALLOWED_ORIGIN_REGEXES = env_list(
     'CORS_ALLOWED_ORIGIN_REGEXES',
-    r'^http://localhost:[0-9]+$,^http://127\.0\.0\.1:[0-9]+$',
+    r'^http://localhost:[0-9]+$,^http://127\.0\.0\.1:[0-9]+$,^https://[a-zA-Z0-9-_]+\.netlify\.app$',
 )
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS', '')
+
+if PUBLIC_APP_URL and PUBLIC_APP_URL.startswith(('http://', 'https://')):
+    if PUBLIC_APP_URL not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(PUBLIC_APP_URL)
+    if PUBLIC_APP_URL not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(PUBLIC_APP_URL)
 
 # ---------------------------------------------------------------------------
 # Security hardening (only enforced when running with DEBUG=false)
